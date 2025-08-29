@@ -1,0 +1,41 @@
+{
+  "name": "@biqprotocol/wallet-react-native",
+  "version": "0.0.12",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "rimraf ./dist && tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@biqprotocol/wallet-lib": "^0.0.6",
+    "buffer": "^6.0.3",
+    "react-native-get-random-values": "^1.11.0",
+    "react-native-url-polyfill": "^2.0.0"
+  },
+  "peerDependencies": {
+    "expo-linking": "^7",
+    "expo-router": "^5",
+    "expo-secure-store": "^14",
+    "react": "^19",
+    "react-native": "^0.79"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}

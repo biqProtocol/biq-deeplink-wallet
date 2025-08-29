@@ -1,0 +1,7 @@
+{
+  "name": "@biqprotocol/deeplink-wallet-monorepo",
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ]
+}
