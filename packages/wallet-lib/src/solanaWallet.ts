@@ -1,5 +1,3 @@
-import * as nacl from "tweetnacl";
-import bs58 from "bs58";
 import { SolanaWalletCluster, SolanaWalletConnectedWallet, SolanaWalletProvider } from "./types";
 import {
   ConnectEventParams, DisconnectEventParams, SignMessageEventParams,
@@ -10,8 +8,10 @@ import {
   SolanaWalletSignMessageRequestData, SolanaWalletSignMessageResponseData
 } from "./types/internal";
 import { SolanaWalletStorageProvider } from "./types/storage";
-import EventEmitter from "eventemitter3";
 import { SolanaWalletLinkingProvider } from "./types/linking";
+import EventEmitter from "eventemitter3";
+import * as nacl from "tweetnacl";
+import bs58 from "bs58";
 
 const SolanaWalletProviderConfig: Record<SolanaWalletProvider, SolanaWalletProviderConfigType> = {
   [SolanaWalletProvider.PHANTOM]: {
@@ -104,12 +104,6 @@ export class SolanaWalletBase extends EventEmitter {
     this.connectCallbackUrl = `${baseUrl}/solanawallet/onconnect`; //Linking.createURL("/solanawallet/onconnect", { scheme: options.appScheme });
     this.signMessageCallbackUrl = `${baseUrl}/solanawallet/onsignmessage`; //Linking.createURL("/solanawallet/onsignmessage", { scheme: options.appScheme });
     this.disconnectCallbackUrl = `${baseUrl}/solanawallet/ondisconnect`; //Linking.createURL("/solanawallet/ondisconnect", { scheme: options.appScheme });
-    // Linking.addEventListener("url", this.handleCallback.bind(this));
-    // Linking.getInitialURL().then((url) => {
-    //   if (url !== null) {
-    //     this.handleCallback({ url });
-    //   }
-    // });
   }
 
   async init() {
@@ -123,7 +117,6 @@ export class SolanaWalletBase extends EventEmitter {
         }
       }
       if (this.encryptionKey === null) {
-        console.log("[SolanaWallet] generating new encryption key");
         await this.regenerateEncryptionKey();
       } else {
         await this.loadProviderSecrets();
@@ -368,10 +361,9 @@ export class SolanaWalletBase extends EventEmitter {
   }
 
   private encrypt(payload: any, sharedSecret: Uint8Array): [Uint8Array, Uint8Array] {
-    const nonce = nacl.randomBytes(24);
-
     console.log("[SolanaWallet] encrypting payload", sharedSecret);
     try {
+      const nonce = nacl.randomBytes(24);
       const encryptedPayload = nacl.box.after(
         Buffer.from(JSON.stringify(payload), "utf8"),
         nonce,

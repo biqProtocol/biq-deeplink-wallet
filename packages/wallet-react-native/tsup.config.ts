@@ -5,5 +5,12 @@ export default defineConfig({
   format: ["cjs", "esm"],
   dts: true,
   clean: true,
-  external: ["react", "react-native", "expo-secure-store", "expo-web-browser", "expo-auth-session", "expo-router"],
+  external: [
+    "react", 
+    "react-native", 
+    "expo-linking", 
+    "expo-router", 
+    "expo-secure-store", 
+  ],
+  // noExternal: ["react-native-get-random-values"],
 });

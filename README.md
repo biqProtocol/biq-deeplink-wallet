@@ -67,9 +67,30 @@ This library was build for integration into a react-native expo app that uses ex
 npm i @biqprotocol/wallet-react-native
 ```
 
-You also need to provide expo dependencies if you don't already have them in your app:
+You also need to provide peer dependencies if you don't already have them in your app:
 ```sh
-npm i expo-linking expo-router expo-secure-store
+npm i expo-linking expo-router expo-secure-store react-native-get-random-values
+```
+
+> `react-native-get-random-values` is required in the app as it contains native modules that are not linked by expo unless they are present in the app's package.json 
+
+Make sure to also configure expo-router and expo-secure-store as plugins in your app.json if you have not done that already:
+
+```json
+...
+  "plugins": [
+    ...
+    "expo-router",
+    [
+      "expo-secure-store",
+      {
+        "configureAndroidBackup": true,
+        "faceIDPermission": "Allow $(PRODUCT_NAME) to access your Face ID biometric data."
+      }
+    ]
+    ...
+  ],
+...
 ```
 
 **2. Configure context**

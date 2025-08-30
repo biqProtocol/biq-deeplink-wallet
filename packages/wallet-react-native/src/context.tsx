@@ -1,8 +1,7 @@
+import { SolanaWalletBase, SolanaWalletCluster, SolanaWalletStorageProvider, SolanaWalletLinkingProvider } from "@biqprotocol/wallet-lib";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import * as Linking from "expo-linking";
 import * as SecureStore from 'expo-secure-store';
-import { SolanaWalletBase, SolanaWalletCluster, SolanaWalletStorageProvider } from "@biqprotocol/wallet-lib";
-import { SolanaWalletLinkingProvider } from "@biqprotocol/wallet-lib";
 
 export type SolanaWalletContextOptions = PropsWithChildren & {
   appUrl: string;
