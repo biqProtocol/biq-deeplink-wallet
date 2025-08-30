@@ -4,6 +4,7 @@
 - [TODO](#todo)
 - [Packages](#packages)
 - [How to use](#how-to-use)
+- [Examples](#examples)
 - [Changelog](#changelog)
 - [Known issues](#known-issues)
 ---
@@ -178,7 +179,19 @@ export default function MyScreen() {
 }
 ```
 
+## Examples
+
+See react-native expo example app in [examples/react-native-app](./examples/react-native-app/).
+
+To run locally, install dependencies and run `npm run android` or `npm run ios` with a device connected (or on emulators). Make sure you have the wallet apps installed and configured on the device.
+
 ## Changelog
+
+- **2025-08-30**
+  - Some dependency fixes
+  - Example react-native expo app
+  - `@biqprotocol/wallet-lib` v0.0.7
+  - `@biqprotocol/wallet-react-native` v0.0.13
 
 - **2025-08-29** 
   - Initial POC release
