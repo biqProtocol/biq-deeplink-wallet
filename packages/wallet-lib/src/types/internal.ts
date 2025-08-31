@@ -44,8 +44,24 @@ export type SolanaWalletSignMessageRequestData = {
   display: "utf8" | "hex";
 }
 
+export type SolanaWalletSignTransactionRequest = {
+  dapp_encryption_public_key: string;
+  nonce: string;
+  redirect_link: string;
+  payload: string; // base58 encoded encrypted message
+}
+
 export type SolanaWalletSignMessageResponseData = {
   signature: string; // base58 encoded signature
+}
+
+export type SolanaWalletSignTransactionRequestData = {
+  transaction: string; // the transaction, base58 encoded
+  session: string;
+}
+
+export type SolanaWalletSignTransactionResponseData = {
+  transaction: string; // the signed transaction, base58 encoded
 }
 
 export interface SolanaWalletProviderConfigType {
@@ -75,6 +91,15 @@ export type DisconnectEventParams = {
 export type SignMessageEventParams = {
   provider?: SolanaWalletProvider;
   signature?: string;
+  error?: {
+    code: string | null;
+    message: string | null;
+  };
+}
+
+export type SignTransactionEventParams = {
+  provider?: SolanaWalletProvider;
+  transaction?: string;
   error?: {
     code: string | null;
     message: string | null;

@@ -1,7 +1,9 @@
-import { trimAddress } from "@/lib/utils";
+import { createMemoTransaction, trimAddress } from "@/lib/utils";
 import { SolanaWalletConnectedWallet, SolanaWalletContext, SolanaWalletProvider } from "@biqprotocol/wallet-react-native";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { Alert, Button, SafeAreaView, ScrollView, StyleSheet, Text, View } from "react-native";
+import bs58 from "bs58";
+import { Transaction } from "@solana/web3.js";
 
 export default function IndexScreen() {
   const [connectedWallets, setConnectedWallets] = useState<SolanaWalletConnectedWallet[]>([]);
@@ -55,6 +57,27 @@ export default function IndexScreen() {
     }
   }, [solanaWallet]);
 
+  const handleSignTransaction = useCallback(async (wallet: string) => {
+    try {
+      const transaction = await createMemoTransaction(wallet);
+      const serializedTransaction = bs58.encode(transaction.serialize({ requireAllSignatures: false }));
+      const signedSerializedTransaction = await solanaWallet!.signTransaction(wallet, serializedTransaction);
+      if (typeof signedSerializedTransaction !== "undefined") {
+        try {
+          const signedTransaction = Transaction.from(bs58.decode(serializedTransaction));
+          Alert.alert("Signed transaction", JSON.stringify(signedTransaction));
+        } catch (error) {
+          console.error("Error deserializing signed transaction:", error);
+          Alert.alert("Error", "Failed to deserialize signed transaction");
+        }
+      } else {
+        Alert.alert("Error", "Failed to sign transaction");
+      }
+    } catch (error) {
+      console.error("Error signing transaction:", error);
+    }
+  }, [solanaWallet]);
+
   /**
    * Get connected wallets at startup
    */
@@ -83,6 +106,7 @@ export default function IndexScreen() {
               <View key={wallet.address} style={{ gap: 10 }}>
                 <Text style={styles.wallet}>{trimAddress(wallet.address)}</Text>
                 <Button title={`Sign message`} color="green" onPress={() => handleSignMessage(wallet.address)}></Button>
+                <Button title={`Sign transaction`} color="blue" onPress={() => handleSignTransaction(wallet.address)} />
                 <Button title={`Disconnect`} color="#991c1c" onPress={() => handleDisconnectWallet(wallet.address)} />
               </View>
             ))}

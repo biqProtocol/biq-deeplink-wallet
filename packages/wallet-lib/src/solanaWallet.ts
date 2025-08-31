@@ -1,11 +1,15 @@
 import { SolanaWalletCluster, SolanaWalletConnectedWallet, SolanaWalletProvider } from "./types";
 import {
   ConnectEventParams, DisconnectEventParams, SignMessageEventParams,
+  SignTransactionEventParams,
   SolanaWalletCallbackParams, SolanaWalletConnectData,
   SolanaWalletConnectRequest, SolanaWalletDisconnectRequest,
   SolanaWalletDisconnectRequestData, SolanaWalletProviderConfigType,
   SolanaWalletProviderSecrets, SolanaWalletSignMessageRequest,
-  SolanaWalletSignMessageRequestData, SolanaWalletSignMessageResponseData
+  SolanaWalletSignMessageRequestData, SolanaWalletSignMessageResponseData,
+  SolanaWalletSignTransactionRequest,
+  SolanaWalletSignTransactionRequestData,
+  SolanaWalletSignTransactionResponseData
 } from "./types/internal";
 import { SolanaWalletStorageProvider } from "./types/storage";
 import { SolanaWalletLinkingProvider } from "./types/linking";
@@ -24,7 +28,7 @@ const SolanaWalletProviderConfig: Record<SolanaWalletProvider, SolanaWalletProvi
     url: "https://solflare.com/ul/v1",
     icon: "https://solflare.com/favicon.ico",
   },
-}
+};
 
 const ENCRYPTION_KEY_STORAGE = "solanaWalletEncryptionKey";
 const CONNECTED_WALLET_STORAGE_PREFIX = "solanaConnectedWallet_";
@@ -44,6 +48,7 @@ export class SolanaWalletBase extends EventEmitter {
   private linking: SolanaWalletLinkingProvider;
   private connectCallbackUrl: string = "";
   private signMessageCallbackUrl: string = "";
+  private signTransactionCallbackUrl: string = "";
   private disconnectCallbackUrl: string = "";
   private encryptionKey: Uint8Array | null = null;
   private encryptionPublicKey: string | null = null;
@@ -101,9 +106,10 @@ export class SolanaWalletBase extends EventEmitter {
     if (baseUrl.endsWith("/")) {
       baseUrl = baseUrl.slice(0, -1);
     }
-    this.connectCallbackUrl = `${baseUrl}/solanawallet/onconnect`; //Linking.createURL("/solanawallet/onconnect", { scheme: options.appScheme });
-    this.signMessageCallbackUrl = `${baseUrl}/solanawallet/onsignmessage`; //Linking.createURL("/solanawallet/onsignmessage", { scheme: options.appScheme });
-    this.disconnectCallbackUrl = `${baseUrl}/solanawallet/ondisconnect`; //Linking.createURL("/solanawallet/ondisconnect", { scheme: options.appScheme });
+    this.connectCallbackUrl = `${baseUrl}/solanawallet/onconnect`;
+    this.signMessageCallbackUrl = `${baseUrl}/solanawallet/onsignmessage`;
+    this.signTransactionCallbackUrl = `${baseUrl}/solanawallet/onsigntransaction`;
+    this.disconnectCallbackUrl = `${baseUrl}/solanawallet/ondisconnect`;
   }
 
   async init() {
@@ -295,6 +301,12 @@ export class SolanaWalletBase extends EventEmitter {
     });
   }
 
+  /**
+   * Sign a message with a connected wallet
+   * @param wallet Base58 encoded wallet public address
+   * @param message UTF-8 encoded message
+   * @returns Base58 encoded message signature or undefined if failed
+   */
   async signMessage(wallet: string, message: string): Promise<string | undefined> {
     return new Promise(async (resolve) => {
       await this.init();
@@ -356,6 +368,73 @@ export class SolanaWalletBase extends EventEmitter {
           return;
         }
         resolve(response.signature);
+      });
+    });
+  }
+
+  /**
+   * Sign a transaction with a connected wallet
+   * @param wallet Base58 encoded wallet public address
+   * @param transaction Base58 encoded transaction
+   * @returns Base58 encoded signed transaction or undefined if failed
+   */
+  async signTransaction(wallet: string, transaction: string): Promise<string | undefined> {
+    return new Promise(async (resolve) => {
+      await this.init();
+      if (this.encryptionKey === null || this.encryptionPublicKey === null) {
+        console.error("[SolanaWallet] encryption key is not initialized");
+        resolve(undefined);
+        return;
+      }
+      if (!(wallet in this.providerSecrets)) {
+        console.error(`SolanaWallet not connected to wallet ${wallet}`);
+        resolve(undefined);
+        return;
+      }
+
+      const requestId = this.requestIdCounter++;
+      this.requestWalletMap[requestId] = wallet;
+
+      const providerSecret = this.providerSecrets[wallet] as SolanaWalletProviderSecrets;
+
+      const signTransactionRequestData: SolanaWalletSignTransactionRequestData = {
+        transaction: transaction,
+        session: providerSecret.session,
+      }
+
+      const [nonce, payload] = this.encrypt(signTransactionRequestData, providerSecret.sharedSecret);
+      const signTransactionRequest: SolanaWalletSignTransactionRequest = {
+        dapp_encryption_public_key: this.encryptionPublicKey,
+        nonce: bs58.encode(nonce),
+        redirect_link: this.signTransactionCallbackUrl + `?provider=${providerSecret.provider}&requestId=${requestId}`,
+        payload: bs58.encode(payload),
+      };
+
+      const url = new URL(SolanaWalletProviderConfig[providerSecret.provider].url + "/signTransaction");
+      Object.entries(signTransactionRequest).forEach(([key, value]) => {
+        url.searchParams.append(key, value);
+      });
+
+      console.log(`[SolanaWallet] opening ${providerSecret.provider} signTransaction URL:`, url.toString());
+
+      try {
+        // Open the wallet app
+        await this.linking.openURL(url.toString());
+      } catch (e) {
+        console.error("[SolanaWallet] failed to open URL:", e);
+        resolve(undefined);
+        return;
+      }
+
+      // TODO: add timeout
+      this.on("signTransaction" + requestId, (response: SignTransactionEventParams) => {
+        this.removeAllListeners("signTransaction" + requestId);
+        if (response.error) {
+          console.error("[SolanaWallet] signTransaction error:", response.error);
+          resolve(undefined);
+          return;
+        }
+        resolve(response.transaction);
       });
     });
   }
@@ -457,6 +536,8 @@ export class SolanaWalletBase extends EventEmitter {
       await this.handleOnSignMessageCallback(url);
     } else if (url.startsWith(this.disconnectCallbackUrl)) {
       await this.handleOnDisconnectCallback(url);
+    } else if (url.startsWith(this.signTransactionCallbackUrl)) {
+      await this.handleOnSignTransactionCallback(url);
     }
   }
 
@@ -629,6 +710,49 @@ export class SolanaWalletBase extends EventEmitter {
         error: {
           code: "unknown_error",
           message: "Unknown error for signMessage response"
+        }
+      });
+    }
+  }
+
+  private async handleOnSignTransactionCallback(url: string): Promise<void> {
+    const params = await this.extractCallbackParams(url);
+    if (typeof params !== "undefined" && !this.isErrorCallback(params, "signTransaction")) {
+      if (typeof params.nonce === "string" && typeof params.data === "string") {
+        // We need to find which wallet this response is for
+        const wallet = this.requestWalletMap[parseInt(params.requestId)];
+        if (typeof wallet === "undefined" || !(wallet in this.providerSecrets)) {
+          console.error(`[SolanaWallet] signTransaction response for unknown wallet: ${wallet}`);
+          this.emit("signTransaction" + params.requestId, {
+            error: {
+              code: "unknown_wallet",
+              message: "Unknown wallet for signTransaction response"
+            }
+          });
+          return;
+        }
+        delete this.requestWalletMap[parseInt(params.requestId)];
+
+        const providerSecret = this.providerSecrets[wallet] as SolanaWalletProviderSecrets;
+        const data = this.decrypt<SolanaWalletSignTransactionResponseData>(params.data, params.nonce, providerSecret.sharedSecret);
+        if (data !== null) {
+          console.log(`SolanaWallet signTransaction response from ${wallet}:`, data);
+          // Here you can handle the signed transaction (data.transaction)
+          this.emit("signTransaction" + params.requestId, {
+            provider: params.provider,
+            transaction: data.transaction
+          });
+          return;
+        }
+
+        console.error("[SolanaWallet] failed to decrypt signTransaction response with any known provider");
+      }
+
+      console.error(`[SolanaWallet] signTransaction response from ${params.provider} could not be processed`);
+      this.emit("signTransaction" + params.requestId, {
+        error: {
+          code: "unknown_error",
+          message: "Unknown error for signTransaction response"
         }
       });
     }

@@ -1,6 +1,6 @@
 {
   "name": "@biqprotocol/wallet-react-native",
-  "version": "0.0.13",
+  "version": "0.0.14",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -20,7 +20,7 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@biqprotocol/wallet-lib": "^0.0.7",
+    "@biqprotocol/wallet-lib": "^0.0.8",
     "buffer": "^6.0.3",
     "react-native-url-polyfill": "^2.0.0"
   },
