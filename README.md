@@ -45,12 +45,12 @@ One of the challenges is to be able to handle the callback urls in the App and r
 ## TODO
 
 - [ ] Implement remaining methods:
-  - [ ] SignTransaction
+  - [X] SignTransaction
   - [ ] SignAllTransactions
   - [ ] SignAndSendTransaction
 - [ ] Implement wallet adapter connector
 - [ ] Examples
-  - [ ] react-native expo app
+  - [X] react-native expo app
   - [ ] next.js app with wallet adapter
   - [ ] next.js app with wallet-lib only
 
@@ -186,6 +186,11 @@ See react-native expo example app in [examples/react-native-app](./examples/reac
 To run locally, install dependencies and run `npm run android` or `npm run ios` with a device connected (or on emulators). Make sure you have the wallet apps installed and configured on the device.
 
 ## Changelog
+
+- **2025-08-31**
+  - Add signTransaction method
+  - `@biqprotocol/wallet-lib` v0.0.8
+  - `@biqprotocol/wallet-react-native` v0.0.14
 
 - **2025-08-30**
   - Some dependency fixes
