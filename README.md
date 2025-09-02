@@ -1,5 +1,13 @@
 # Deeplink wallet connect
 
+Solana wallet connector using deeplinks protocol for [Solflare](https://docs.solflare.com/solflare/technical/deeplinks) and [Phantom](https://docs.phantom.com/phantom-deeplinks/deeplinks-ios-and-android) wallets integration into mobile app environments such as react-native or web dApps running in a mobile browser where browser extensions are not available.
+
+**Why use it ?**
+
+Because it provides a unified way of connecting to Solana wallets from both Android and iOS.
+
+Because [Mobile Wallet Adapter](https://docs.solanamobile.com/react-native/using_mobile_wallet_adapter) only supports Android devices for native apps and only dApps running in Chrome browser.
+
 - [Overview](#overview)
 - [TODO](#todo)
 - [Packages](#packages)
@@ -13,7 +21,6 @@
 ---
 
 ## Overview
-Solana wallet connector using deeplinks protocol for [Solflare](https://docs.solflare.com/solflare/technical/deeplinks) and [Phantom](https://docs.phantom.com/phantom-deeplinks/deeplinks-ios-and-android) wallets integration into mobile app environments such as react-native or web dApps running in a mobile browser where browser extensions are not available.
 
 Deeplinks work via redirects, so only the App or Wallet is visible to the user at one time. The App has no control or feedback after a deeplink redirect, only when the Wallet redirects back it can evaluate the status of the call. However, the user can still close the Wallet app or switch back to the App making for a not so friendly user experience.
 
@@ -49,6 +56,7 @@ One of the challenges is to be able to handle the callback urls in the App and r
   - [ ] SignAllTransactions
   - [ ] SignAndSendTransaction
 - [ ] Implement wallet adapter connector
+- [ ] Implement [Seed Vault](https://docs.solanamobile.com/developers/seed-vault) for Saga and Seeker devices
 - [ ] Examples
   - [X] react-native expo app
   - [ ] next.js app with wallet adapter
