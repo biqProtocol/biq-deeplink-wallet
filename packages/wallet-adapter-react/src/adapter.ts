@@ -105,6 +105,7 @@ export abstract class DeeplinkWalletAdapter extends BaseMessageSignerWalletAdapt
 
     this._connecting = true;
     this.subscribeToBroadcast();
+    await this._wallet.regenerateEncryptionKey();
     const result = await this._wallet.connect(this._provider);
     if (typeof result !== "undefined") {
       this._publicKey = new PublicKey(result.address);
