@@ -3,7 +3,7 @@ import { DeeplinkWalletAdapter, DeeplinkWalletAdapterOptions } from "./adapter";
 import { WalletName } from "@solana/wallet-adapter-base";
 import { TransactionVersion } from "@solana/web3.js";
 
-export const SolflareWalletName = 'Solflare APP' as WalletName<'Solflare APP'>;
+const SolflareWalletName = 'Solflare APP' as WalletName<'Solflare APP'>;
 
 export class DeeplinkWalletAdapterSolflare extends DeeplinkWalletAdapter {
   name = SolflareWalletName;
@@ -14,6 +14,7 @@ export class DeeplinkWalletAdapterSolflare extends DeeplinkWalletAdapter {
   constructor(options: DeeplinkWalletAdapterOptions = {}) {
     super({
       provider: SolanaWalletProvider.SOLFLARE,
+      network: options.network,
       appUrl: options.appUrl,
       redirectUrl: options.redirectUrl,
     });

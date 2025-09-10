@@ -3,7 +3,7 @@ import { DeeplinkWalletAdapter, DeeplinkWalletAdapterOptions } from "./adapter";
 import { WalletName } from "@solana/wallet-adapter-base";
 import { TransactionVersion } from "@solana/web3.js";
 
-export const PhantomWalletName = 'Phantom APP' as WalletName<'Phantom APP'>;
+const PhantomWalletName = 'Phantom APP' as WalletName<'Phantom APP'>;
 
 export class DeeplinkWalletAdapterPhantom extends DeeplinkWalletAdapter {
   name = PhantomWalletName;
@@ -14,6 +14,7 @@ export class DeeplinkWalletAdapterPhantom extends DeeplinkWalletAdapter {
   constructor(options: DeeplinkWalletAdapterOptions = {}) {
     super({
       provider: SolanaWalletProvider.PHANTOM,
+      network: options.network,
       appUrl: options.appUrl,
       redirectUrl: options.redirectUrl,
     });

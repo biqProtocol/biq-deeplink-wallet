@@ -1,19 +1,17 @@
-import { SolanaWalletBase, SolanaWalletProvider } from "@biqprotocol/wallet-lib";
-import { BaseMessageSignerWalletAdapter, scopePollingDetectionStrategy, WalletConnectionError, WalletReadyState, WalletSignMessageError, WalletSignTransactionError } from "@solana/wallet-adapter-base";
+import { SolanaWalletBase, SolanaWalletCluster, SolanaWalletProvider } from "@biqprotocol/wallet-lib";
+import { BaseMessageSignerWalletAdapter, scopePollingDetectionStrategy, WalletAdapterNetwork, WalletConnectionError, WalletReadyState, WalletSignMessageError, WalletSignTransactionError } from "@solana/wallet-adapter-base";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
 import bs58 from "bs58";
 
-export const broadcastSent: { sent: boolean } = {
-  sent: false,
-};
-
 export interface DeeplinkWalletAdapterConfig {
   provider: SolanaWalletProvider;
+  network?: WalletAdapterNetwork;
   appUrl?: string;
   redirectUrl?: string;
 }
 
 export interface DeeplinkWalletAdapterOptions {
+  network?: WalletAdapterNetwork;
   appUrl?: string;
   redirectUrl?: string;
 }
@@ -55,15 +53,8 @@ export abstract class DeeplinkWalletAdapter extends BaseMessageSignerWalletAdapt
         this._wallet = new SolanaWalletBase({
           appUrl: appUrl,
           redirectUrl: redirectUrl,
+          cluster: this.getClusterFromNetwork(options.network),
         });
-
-        /**
-         * TODO:
-         * - events from SolanaWalletBase connect, disconnect, signMessage, signTransaction
-         * - store last wallet and auto re-connect in SolanaWalletBase
-         * - store SolanaWalletBase request counter in localStorage 
-         * - track request URL for callback redirects
-         */
 
         // Mark wallet as ready
         this._readyState = WalletReadyState.Loadable;
@@ -73,6 +64,18 @@ export abstract class DeeplinkWalletAdapter extends BaseMessageSignerWalletAdapt
       }
       return false;
     });
+  }
+
+  private getClusterFromNetwork(network: WalletAdapterNetwork | undefined): SolanaWalletCluster {
+    switch (network) {
+      case WalletAdapterNetwork.Mainnet:
+        return "mainnet-beta";
+      case WalletAdapterNetwork.Testnet:
+        return "testnet";
+      case WalletAdapterNetwork.Devnet:
+      default:
+        return "devnet";
+    }
   }
 
   private subscribeToBroadcast() {
