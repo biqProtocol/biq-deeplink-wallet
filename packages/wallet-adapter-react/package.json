@@ -1,0 +1,35 @@
+{
+  "name": "@biqprotocol/wallet-adapter-react",
+  "version": "0.0.2",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "rimraf ./dist && tsup",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@biqprotocol/wallet-lib": "^0.0.8"
+  },
+  "peerDependencies": {
+    "@solana/wallet-adapter-base": "^0.9.27",
+    "@solana/web3.js": "^1.98.4",
+    "bs58": "^6.0.0"
+  },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.2"
+  }
+}
