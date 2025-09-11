@@ -16,8 +16,12 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
   const wallets = useMemo(
     () => [
-      new DeeplinkWalletAdapterPhantom(),
-      new DeeplinkWalletAdapterSolflare(),
+      new DeeplinkWalletAdapterPhantom({
+        network: network,
+      }),
+      new DeeplinkWalletAdapterSolflare({
+        network: network,
+      }),
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [network]
