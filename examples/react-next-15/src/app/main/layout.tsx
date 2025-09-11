@@ -33,7 +33,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     <ConnectionProvider endpoint={endpoint}>
       <WalletProvider wallets={wallets} autoConnect>
         <WalletModalProvider>
-          <div className="flex flex-col items-center justify-center py-8 gap-4">
+          <div className="flex flex-col items-center justify-center pt-8 pb-24 gap-4">
             {children}
           </div>
         </WalletModalProvider>
