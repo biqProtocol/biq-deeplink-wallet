@@ -12,7 +12,9 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
   const network = WalletAdapterNetwork.Mainnet;
 
   // You can also provide a custom RPC endpoint.
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => {
+    return process.env.NEXT_PUBLIC_RPC || clusterApiUrl(network)
+  }, [network]);
 
   const wallets = useMemo(
     () => [
