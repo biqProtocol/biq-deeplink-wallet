@@ -1,6 +1,6 @@
 {
   "name": "@biqprotocol/wallet-react-native",
-  "version": "0.0.14",
+  "version": "0.0.17",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -20,18 +20,18 @@
     "prepublishOnly": "npm run build"
   },
   "dependencies": {
-    "@biqprotocol/wallet-lib": "^0.0.8",
+    "@biqprotocol/wallet-lib": "^0.0.9",
     "buffer": "^6.0.3",
     "react-native-url-polyfill": "^2.0.0"
   },
   "peerDependencies": {
-    "react-native-get-random-values": "^1.11.0",
-    "expo-linking": "~7.1.7",
-    "expo-router": "~5.1.5",
-    "expo-secure-store": "^14",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-native": "0.79.6"
+    "react-native-get-random-values": ">=1.11.0",
+    "expo-linking": ">=7.1.7",
+    "expo-router": ">=5.1.5",
+    "expo-secure-store": ">=14",
+    "react": ">=19.0.0",
+    "react-dom": ">=19.0.0",
+    "react-native": ">=0.79.6"
   },
   "devDependencies": {
     "@types/react": "~19.0.10",

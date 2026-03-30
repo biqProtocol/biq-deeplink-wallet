@@ -30,11 +30,18 @@ const SolanaWalletProviderConfig: Record<SolanaWalletProvider, SolanaWalletProvi
   },
 };
 
+// Phantom now requires app_url to be the same scheme as redirect_link.
+// Solflare does not accept app scheme in app_url
+const SolanaWalletProviderRequireAppScheme: Set<SolanaWalletProvider> = new Set([
+  SolanaWalletProvider.PHANTOM,
+]);
+
 const ENCRYPTION_KEY_STORAGE = "solanaWalletEncryptionKey";
 const CONNECTED_WALLET_STORAGE_PREFIX = "solanaConnectedWallet_";
 
 interface SolanaWalletOptions {
   appUrl: string;
+  appScheme?: string;
   redirectUrl: string;
   cluster?: SolanaWalletCluster;
   storageProvider?: SolanaWalletStorageProvider;
@@ -43,6 +50,7 @@ interface SolanaWalletOptions {
 
 export class SolanaWalletBase extends EventEmitter {
   private appUrl: string;
+  private appScheme?: string;
   private cluster: SolanaWalletCluster = "mainnet-beta";
   private storage: SolanaWalletStorageProvider;
   private linking: SolanaWalletLinkingProvider;
@@ -59,6 +67,7 @@ export class SolanaWalletBase extends EventEmitter {
   constructor(options: SolanaWalletOptions) {
     super();
     this.appUrl = options.appUrl;
+    this.appScheme = options.appScheme;
     this.cluster = options.cluster || "mainnet-beta";
 
     if (typeof options.storageProvider !== "undefined") {
@@ -188,7 +197,7 @@ export class SolanaWalletBase extends EventEmitter {
       const requestId = this.requestIdCounter++;
 
       const connectRequest: SolanaWalletConnectRequest = {
-        app_url: this.appUrl,
+        app_url: SolanaWalletProviderRequireAppScheme.has(provider) && this.appScheme ? `${this.appScheme}://` : this.appUrl,
         dapp_encryption_public_key: this.encryptionPublicKey,
         redirect_link: this.connectCallbackUrl + `?provider=${provider}&requestId=${requestId}`,
         cluster: this.cluster,

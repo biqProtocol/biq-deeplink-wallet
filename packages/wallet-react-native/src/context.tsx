@@ -41,6 +41,7 @@ export function SolanaWallet({ appUrl, appScheme, cluster, children }: SolanaWal
   useEffect(() => {
     const newSolanaWallet = new SolanaWalletBase({
       appUrl: appUrl,
+      appScheme: appScheme,
       redirectUrl: baseUrl,
       cluster,
       storageProvider,
