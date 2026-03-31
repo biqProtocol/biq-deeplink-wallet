@@ -1,4 +1,4 @@
-import { SolanaWalletBase, SolanaWalletCluster, SolanaWalletStorageProvider, SolanaWalletLinkingProvider } from "@biqprotocol/wallet-lib";
+import { SolanaWalletBase, SolanaWalletCluster, SolanaWalletStorageProvider, SolanaWalletLinkingProvider, SolanaWalletError } from "@biqprotocol/wallet-lib";
 import { createContext, PropsWithChildren, useEffect, useState } from "react";
 import * as Linking from "expo-linking";
 import * as SecureStore from 'expo-secure-store';
@@ -11,8 +11,10 @@ export type SolanaWalletContextOptions = PropsWithChildren & {
 
 export const SolanaWalletContext = createContext<{
   solanaWallet?: SolanaWalletBase | null;
+  hasErrors: boolean;
 }>({
-  solanaWallet: null
+  solanaWallet: null,
+  hasErrors: false
 });
 
 const storageProvider: SolanaWalletStorageProvider = {
@@ -35,6 +37,7 @@ const linkingProvider: SolanaWalletLinkingProvider = {
 
 export function SolanaWallet({ appUrl, appScheme, cluster, children }: SolanaWalletContextOptions) {
   const [solanaWallet, setSolanaWallet] = useState<SolanaWalletBase | null>(null);
+  const [hasErrors, setHasErrors] = useState(false);
 
   const baseUrl = Linking.createURL("/", { scheme: appScheme });
 
@@ -54,9 +57,15 @@ export function SolanaWallet({ appUrl, appScheme, cluster, children }: SolanaWal
         newSolanaWallet.getCallbackHandler()(url);
       }
     });
+
+    newSolanaWallet.on("error", (errors: SolanaWalletError[]) => {
+      setHasErrors(errors.length > 0);
+    });
+
     setSolanaWallet(newSolanaWallet);
 
     return () => {
+      newSolanaWallet.removeAllListeners("error");
       callbackSubscriber.remove();
       setSolanaWallet(null);
     }
@@ -64,7 +73,8 @@ export function SolanaWallet({ appUrl, appScheme, cluster, children }: SolanaWal
 
   return (
     <SolanaWalletContext.Provider value={{
-      solanaWallet
+      solanaWallet,
+      hasErrors
     }}>
       {children}
     </SolanaWalletContext.Provider>

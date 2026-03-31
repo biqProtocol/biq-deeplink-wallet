@@ -1,4 +1,4 @@
-import { SolanaWalletCluster, SolanaWalletConnectedWallet, SolanaWalletProvider } from "./types";
+import { SolanaWalletCluster, SolanaWalletConnectedWallet, SolanaWalletError, SolanaWalletLibError, SolanaWalletProvider } from "./types";
 import {
   ConnectEventParams, DisconnectEventParams, SignMessageEventParams,
   SignTransactionEventParams,
@@ -63,6 +63,7 @@ export class SolanaWalletBase extends EventEmitter {
   private providerSecrets: Partial<Record<string, SolanaWalletProviderSecrets>> = {};
   private requestIdCounter: number = 0;
   private requestWalletMap: Record<number, string> = {};
+  private errorLog: SolanaWalletError[] = [];
 
   constructor(options: SolanaWalletOptions) {
     super();
@@ -190,6 +191,14 @@ export class SolanaWalletBase extends EventEmitter {
       await this.init();
       if (this.encryptionKey === null || this.encryptionPublicKey === null) {
         console.error("[SolanaWallet] encryption key is not initialized");
+        this.logError({
+          type: "connect",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.ENCRYPTION_KEY_NOT_INITIALIZED,
+            message: "Encryption key is not initialized"
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -215,6 +224,14 @@ export class SolanaWalletBase extends EventEmitter {
         await this.linking.openURL(url.toString());
       } catch (e) {
         console.error("[SolanaWallet] failed to open URL:", e);
+        this.logError({
+          type: "connect",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_TO_OPEN_URL,
+            message: "Failed to open URL: " + (e instanceof Error ? e.message : String(e))
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -224,6 +241,11 @@ export class SolanaWalletBase extends EventEmitter {
         this.removeAllListeners("connect" + requestId.toString());
         if (response.error || !response.publicKey) {
           console.error("[SolanaWallet] connect error:", response.error);
+          this.logError({
+            type: "connect",
+            source: "wallet",
+            error: response.error,
+          });
           resolve(undefined);
           return;
         }
@@ -255,11 +277,28 @@ export class SolanaWalletBase extends EventEmitter {
       await this.init();
       if (this.encryptionKey === null || this.encryptionPublicKey === null) {
         console.error("[SolanaWallet] encryption key is not initialized");
+        this.logError({
+          type: "disconnect",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.ENCRYPTION_KEY_NOT_INITIALIZED,
+            message: "Encryption key is not initialized"
+          }
+        });
+
         resolve(false);
         return;
       }
       if (!(wallet in this.providerSecrets)) {
         console.error(`SolanaWallet not connected to wallet ${wallet}`);
+        this.logError({
+          type: "disconnect",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.NOT_CONNECTED,
+            message: `Not connected to wallet ${wallet}`
+          }
+        });
         resolve(false);
         return;
       }
@@ -293,6 +332,14 @@ export class SolanaWalletBase extends EventEmitter {
         await this.linking.openURL(url.toString());
       } catch (e) {
         console.error("[SolanaWallet] failed to open URL:", e);
+        this.logError({
+          type: "disconnect",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_TO_OPEN_URL,
+            message: "Failed to open URL: " + (e instanceof Error ? e.message : String(e))
+          }
+        });
         resolve(false);
         return;
       }
@@ -302,6 +349,11 @@ export class SolanaWalletBase extends EventEmitter {
         this.removeAllListeners("disconnect" + requestId);
         if (response.error) {
           console.error("[SolanaWallet] disconnect error:", response.error);
+          this.logError({
+            type: "disconnect",
+            source: "wallet",
+            error: response.error
+          });
           resolve(false);
           return;
         }
@@ -321,11 +373,27 @@ export class SolanaWalletBase extends EventEmitter {
       await this.init();
       if (this.encryptionKey === null || this.encryptionPublicKey === null) {
         console.error("[SolanaWallet] encryption key is not initialized");
+        this.logError({
+          type: "signMessage",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.ENCRYPTION_KEY_NOT_INITIALIZED,
+            message: "Encryption key is not initialized"
+          }
+        });
         resolve(undefined);
         return;
       }
       if (!(wallet in this.providerSecrets)) {
         console.error(`SolanaWallet not connected to wallet ${wallet}`);
+        this.logError({
+          type: "signMessage",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.NOT_CONNECTED,
+            message: `Not connected to wallet ${wallet}`
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -364,6 +432,14 @@ export class SolanaWalletBase extends EventEmitter {
         await this.linking.openURL(url.toString());
       } catch (e) {
         console.error("[SolanaWallet] failed to open URL:", e);
+        this.logError({
+          type: "signMessage",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_TO_OPEN_URL,
+            message: "Failed to open URL: " + (e instanceof Error ? e.message : String(e))
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -373,6 +449,11 @@ export class SolanaWalletBase extends EventEmitter {
         this.removeAllListeners("signMessage" + requestId);
         if (response.error) {
           console.error("[SolanaWallet] signMessage error:", response.error);
+          this.logError({
+            type: "signMessage",
+            source: "wallet",
+            error: response.error
+          });
           resolve(undefined);
           return;
         }
@@ -392,11 +473,27 @@ export class SolanaWalletBase extends EventEmitter {
       await this.init();
       if (this.encryptionKey === null || this.encryptionPublicKey === null) {
         console.error("[SolanaWallet] encryption key is not initialized");
+        this.logError({
+          type: "signTransaction",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.ENCRYPTION_KEY_NOT_INITIALIZED,
+            message: "Encryption key is not initialized"
+          }
+        });
         resolve(undefined);
         return;
       }
       if (!(wallet in this.providerSecrets)) {
         console.error(`SolanaWallet not connected to wallet ${wallet}`);
+        this.logError({
+          type: "signTransaction",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.NOT_CONNECTED,
+            message: `Not connected to wallet ${wallet}`
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -431,6 +528,14 @@ export class SolanaWalletBase extends EventEmitter {
         await this.linking.openURL(url.toString());
       } catch (e) {
         console.error("[SolanaWallet] failed to open URL:", e);
+        this.logError({
+          type: "signTransaction",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_TO_OPEN_URL,
+            message: "Failed to open URL: " + (e instanceof Error ? e.message : String(e))
+          }
+        });
         resolve(undefined);
         return;
       }
@@ -440,6 +545,11 @@ export class SolanaWalletBase extends EventEmitter {
         this.removeAllListeners("signTransaction" + requestId);
         if (response.error) {
           console.error("[SolanaWallet] signTransaction error:", response.error);
+          this.logError({
+            type: "signTransaction",
+            source: "wallet",
+            error: response.error
+          });
           resolve(undefined);
           return;
         }
@@ -560,8 +670,8 @@ export class SolanaWalletBase extends EventEmitter {
         try {
           const encryption_public_key = bs58.decode(params.phantom_encryption_public_key || params.solflare_encryption_public_key || "");
 
-          console.log(`[SolanaWallet] connect ${params.provider} key: ${bs58.encode(encryption_public_key)}`);
-          console.log(this);
+          // console.log(`[SolanaWallet] connect ${params.provider} key: ${bs58.encode(encryption_public_key)}`);
+          // console.log(this);
 
           const sharedSecret = nacl.box.before(
             encryption_public_key,
@@ -570,8 +680,8 @@ export class SolanaWalletBase extends EventEmitter {
 
           const data = this.decrypt<SolanaWalletConnectData>(params.data, params.nonce, sharedSecret);
           if (data !== null) {
-            console.log(`[SolanaWallet] connect ${params.provider} session: ${data.session}`);
-            console.log(`[SolanaWallet] connect ${params.provider} sharedSecret: ${bs58.encode(sharedSecret)}`);
+            // console.log(`[SolanaWallet] connect ${params.provider} session: ${data.session}`);
+            // console.log(`[SolanaWallet] connect ${params.provider} sharedSecret: ${bs58.encode(sharedSecret)}`);
             // Store the connected wallet session
             this.providerSecrets[data.public_key] = {
               provider: params.provider,
@@ -616,9 +726,26 @@ export class SolanaWalletBase extends EventEmitter {
             return;
           } else {
             console.error(`[SolanaWallet] failed to decrypt connect ${params.provider} response`);
+            this.logError({
+              type: "connect",
+              source: "lib",
+              error: {
+                code: SolanaWalletLibError.FAILED_DECRYPT,
+                message: `Failed to decrypt connect response from ${params.provider}`
+              }
+            });
+
           }
         } catch (e) {
           console.error("[SolanaWallet] error handling connect callback:", e);
+          this.logError({
+            type: "connect",
+            source: "lib",
+            error: {
+              code: SolanaWalletLibError.INTERNAL_ERROR,
+              message: "Unknown error handling connect callback: " + (e instanceof Error ? e.message : String(e))
+            }
+          });
         }
       }
 
@@ -712,6 +839,14 @@ export class SolanaWalletBase extends EventEmitter {
         }
 
         console.error("[SolanaWallet] failed to decrypt signMessage response with any known provider");
+        this.logError({
+          type: "signMessage",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_DECRYPT,
+            message: `Failed to decrypt signMessage response from ${params.provider}`
+          }
+        });
       }
 
       console.error(`[SolanaWallet] signMessage response from ${params.provider} could not be processed`);
@@ -755,6 +890,14 @@ export class SolanaWalletBase extends EventEmitter {
         }
 
         console.error("[SolanaWallet] failed to decrypt signTransaction response with any known provider");
+        this.logError({
+          type: "signTransaction",
+          source: "lib",
+          error: {
+            code: SolanaWalletLibError.FAILED_DECRYPT,
+            message: `Failed to decrypt signTransaction response from ${params.provider}`
+          }
+        });
       }
 
       console.error(`[SolanaWallet] signTransaction response from ${params.provider} could not be processed`);
@@ -765,5 +908,23 @@ export class SolanaWalletBase extends EventEmitter {
         }
       });
     }
+  }
+
+  private logError(error: Omit<SolanaWalletError, "timestamp">) {
+    this.errorLog.push({ ...error, timestamp: Math.round(Date.now() / 1000) });
+    // Keep only the last 10 errors
+    if (this.errorLog.length > 10) {
+      this.errorLog.shift();
+    }
+    this.emit("error", this.errorLog);
+  }
+
+  public getErrorLog(clear: boolean = true): SolanaWalletError[] {
+    const log = [...this.errorLog];
+    if (clear) {
+      this.errorLog = [];
+      this.emit("error", this.errorLog);
+    }
+    return log;
   }
 }
